@@ -1,15 +1,41 @@
 package org.example
 
+import org.example.lexical_analyzer.Analyzer
 import org.example.tables.BinaryTreeTable
 import tables.SimpleRehashTable
 import kotlin.time.measureTime
+
+
+fun main() {
+    // testTables()
+    analyzeCode()
+}
+
+/**
+ * ЛР2, Партилов Д.М., Вариант 3
+ * Лексический анализатор
+ * Входной язык содержит операторы условия типа if ... then ... else ...  и if ... then,
+ * разделённые символом ; (точка с запятой). Операторы условия содержат идентификаторы, знаки сравнения <, >, =,
+ * десятичные числа с плавающей точкой (в обычной и логарифм. форме), знак присваивания (:=)
+ */
+private fun analyzeCode() {
+    val analyzer = Analyzer()
+    analyzer.analyze("""
+        program analyzator;
+        a, b, c : integer;
+        c := a - b + 15;
+    """.trimIndent())
+    analyzer.resultingLexemes.forEach {
+        println("${it.value} - ${it.type.asString}")
+    }
+}
 
 /**
  * ЛР1, Партилов Д.М., ИВТ-424Б, Вариант 3
  * Метод 1: Простое рехэширование
  * Метод 2: Бинарное дерево
  */
-fun main() {
+private fun testTables() {
     val identifiers = readLinesFromInputStream(inputStream = getStreamFromResources(IDENTIFIERS_FILE_NAME))
     if (identifiers == null) {
         println("Не удалось прочесть файл. Завершаем исполнение программы...")
