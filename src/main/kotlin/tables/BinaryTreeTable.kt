@@ -53,16 +53,9 @@ class BinaryTreeTable {
         return result?.second
     }
 
-    fun testSearch(identifiers: List<String>) {
-        if (rootNode == null) {
-            println("Корневой элемент пуст, выполнение теста невозможно")
-            return
-        }
-
-        val anyElement = identifiers.random()
-
-        println("Поиск элемента \"${anyElement}\"")
-        val timeToFindElement = measureTime { findElement(anyElement) }.inWholeMicroseconds
+    fun testSearch() {
+        println("Поиск элемента CA0fatamOA9jl9NJWtJCVmKj9bh9JniT в таблице бинарного дерева")
+        val timeToFindElement = measureTime { findElement("CA0fatamOA9jl9NJWtJCVmKj9bh9JniT") }.inWholeMicroseconds
         println("Время, затраченное на поиск: $timeToFindElement мкс")
     }
 }

@@ -68,12 +68,8 @@ class SimpleRehashTable(size: Int) {
     }
 
     fun testSearch() {
-        val anyElement = table.filterNotNull().randomOrNull() ?: run {
-            println("Таблица пуста, проверить поиск реального элемента невозможно")
-            return
-        }
-        println("Поиск элемента \"$anyElement\"")
-        val timeToFindElement = measureTime { findElement(anyElement) }.inWholeMicroseconds
+        println("Поиск элемента CA0fatamOA9jl9NJWtJCVmKj9bh9JniT в таблице с простым рехэшированием: ")
+        val timeToFindElement = measureTime { findElement("CA0fatamOA9jl9NJWtJCVmKj9bh9JniT") }.inWholeMicroseconds
         println("Время, затраченное на поиск: $timeToFindElement мкс")
     }
 

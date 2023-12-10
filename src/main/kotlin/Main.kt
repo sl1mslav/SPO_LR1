@@ -28,7 +28,7 @@ fun main() {
 
     // Тестируем поиск по таблице
     simpleRehashTable.testSearch()
-    binaryTreeTable.testSearch(identifiers)
+    binaryTreeTable.testSearch()
 
     // Пользовательский поиск
     while (true) {
@@ -47,5 +47,5 @@ fun main() {
     }
 }
 
-private const val TABLE_SIZE = 200
-private const val IDENTIFIERS_FILE_NAME = "/identifiers.txt"
+private const val TABLE_SIZE = 2200
+private const val IDENTIFIERS_FILE_NAME = "/identifiers2000.txt"

@@ -8,5 +8,5 @@ fun getStreamFromResources(fileName: String): InputStream? = object {}.javaClass
 fun readLinesFromInputStream(inputStream: InputStream?) = inputStream?.bufferedReader()?.readLines()
 
 fun String.hash(): Int = foldIndexed(0) { index, acc, char ->
-    acc + char.code * 31f.pow(length - index - 1).toInt()
+    acc + char.code * 32f.pow(length - index - 1).toInt()
 }.absoluteValue
