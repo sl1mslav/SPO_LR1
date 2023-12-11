@@ -19,15 +19,20 @@ fun main() {
  * десятичные числа с плавающей точкой (в обычной и логарифм. форме), знак присваивания (:=)
  */
 private fun analyzeCode() {
+    val sourceCode = """
+        {
+        c := 1.15;
+        a := c;
+        b := 1;
+        if a > b then
+            c := 2.3;
+        else
+            c := 15;
+        if b = a then
+            c := 0.3;
+    """.trimIndent()
     val analyzer = Analyzer()
-    analyzer.analyze("""
-        program analyzator;
-        a, b, c : integer;
-        c := a - b + 15;
-    """.trimIndent())
-    analyzer.resultingLexemes.forEach {
-        println("${it.value} - ${it.type.asString}")
-    }
+    analyzer.analyze(sourceCode)
 }
 
 /**

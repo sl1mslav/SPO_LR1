@@ -1,6 +1,7 @@
 package org.example.lexical_analyzer
 
 data class Lexeme(
+    val position: Int? = null,
     val value: String,
     val type: LexemeType
 )
