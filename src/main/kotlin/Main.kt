@@ -22,7 +22,7 @@ private fun analyzeCode() {
     val sourceCode = """
         {
         c := 1.15;
-        a := c;
+        a := c%;
         b := 1;
         if a > b then
             c := 2.3;

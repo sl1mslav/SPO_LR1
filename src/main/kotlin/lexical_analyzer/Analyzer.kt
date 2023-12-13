@@ -2,28 +2,21 @@ package org.example.lexical_analyzer
 
 class Analyzer {
 
-    data class AnalyzerError(
-        val index: Int,
-        val value: String
-    )
-
     private enum class State {
         START,
         IDENTIFIER,
         NUMBER,
         ASSIGN,
-        COMMENT,
-        /*ERROR,
-        FINISH*/
+        COMMENT
     }
 
     private var currentState = State.START
     private var lexemeBuffer: String = ""
-    private val resultingLexemes = mutableListOf<Lexeme>()
-    private val errors = mutableListOf<AnalyzerError>()
+    private val results = mutableListOf<AnalyzerResult>()
 
     /**
-     *         c := 1.15*;
+     * { &
+     *         c := 1.15; ( ... )
      *         a := c;
      *         b := 1;
      *         if a > b then
@@ -34,7 +27,6 @@ class Analyzer {
      *             c := 0.3;
      */
     fun analyze(text: String) {
-        val linesCount = text.lines().size
         text.forEachIndexed { index, char ->
             when (currentState) {
                 State.START -> {
@@ -101,7 +93,7 @@ class Analyzer {
                     if (char.isDigit() || (char == '.' && lexemeBuffer.contains('.').not())) {
                         addToBuffer(char)
                     } else {
-                        addLexeme(index = index, value = lexemeBuffer, type = LexemeType.CONSTANT)
+                        addLexeme(index = index, value = lexemeBuffer.removeSuffix("."), type = LexemeType.CONSTANT)
                         if (!char.isWhitespace()) {
                             addLexeme(
                                 index = index,
@@ -119,6 +111,7 @@ class Analyzer {
                         addLexeme(index, lexemeBuffer, LexemeType.ASSIGN_SIGN)
                     } else {
                         addLexeme(index, lexemeBuffer, LexemeType.DELIMITER)
+                        addLexeme(index, char.toString(), LexemeType.DELIMITER)
                     }
                     currentState = State.START
                 }
@@ -129,42 +122,18 @@ class Analyzer {
                 }
             }
         }
-        println("Исходный код: \n\n\n $text \n\n\n")
-        resultingLexemes.forEach {
-            checkForErrors(it)
-            println("${it.value} - ${it.type.asString}")
-        }
-        errors.sortedBy { it.index }.forEach {
-            val (line, column) = getLineAndColumn(text, index = it.index)
-            println("Ошибка на позиции ${it.index} - ${it.value}")
-//            println("Ошибка! Строка: $line, столбец: $column - ${it.value}")
-        }
-        // состояние финиша ниже
+        print("Исходный код: \n\n\n $text \n\n\n")
+        results.map(::checkResult).forEach(::println)
     }
 
-    private fun checkForErrors(lexeme: Lexeme) {
-        if (lexeme.type == LexemeType.DELIMITER && KNOWN_LEXEMES.none { it.value == lexeme.value }) {
-            reportError(
+    private fun checkResult(result: AnalyzerResult): AnalyzerResult {
+        val lexeme = result as? Lexeme ?: return result
+        return if (lexeme.type == LexemeType.DELIMITER && KNOWN_LEXEMES.none { it.value == lexeme.value }) {
+            Error(
                 position = lexeme.position ?: 0,
                 value = "Неизвестная лексема вида ${lexeme.type.asString} - ${lexeme.value}"
             )
-        }
-    }
-
-    private fun getLineAndColumn(text: String, index: Int): Pair<Int, Int> {
-        TODO("доработать")
-        /*var totalSymbols = 0
-        var line = 0
-        var column = 0
-        val lines = text.lines()
-        lines.forEachIndexed { i, lineText ->
-            totalSymbols += lineText.length
-            if (index <= totalSymbols) {
-                line = i
-                column = lineText.length - index
-            }
-        }
-        return line + 1 to column + 1*/
+        } else lexeme
     }
 
     private fun clearBuffer() {
@@ -176,20 +145,11 @@ class Analyzer {
     }
 
     private fun addLexeme(index: Int, value: String, type: LexemeType) {
-        resultingLexemes.add(Lexeme(index, value, type))
-    }
-
-    private fun addLexeme(lexeme: Lexeme) {
-        resultingLexemes.add(lexeme)
+        results.add(Lexeme(index, value, type))
     }
 
     private fun reportError(position: Int, value: String) {
-        errors.add(
-            AnalyzerError(
-                index = position,
-                value = value
-            )
-        )
+        results.add(Error(position, value))
     }
 
     companion object {
