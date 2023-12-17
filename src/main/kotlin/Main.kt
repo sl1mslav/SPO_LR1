@@ -21,6 +21,8 @@ fun main() {
                c := 1.12;
         else
             c := 15; { неуспешное выполнение условия }
+        if 15 > 1.12 then
+            c := 13; 
     """.trimIndent()
     val lexicalResults = analyzeLexemes(sourceCode)
     analyzeSyntax(lexicalResults).onSuccess {

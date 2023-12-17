@@ -59,12 +59,33 @@ class SyntacticalAnalyzer {
                 lexemes = lexemes.drop(delimiterIndex + 1)
             } else {
                 // Ищём законченную условную конструкцию и анализируем всё внутри
-                val conditionalBlockNode = analyzeConditional(lexemes)
-                startNode.addNode(conditionalBlockNode)
-                lexemes = lexemes.drop(lexemes.indexOf(lastConditionalLexeme) + 1)
+                val conditionalLexemes = locateConditionalBlock(lexemes)
+                startNode.addNode(analyzeConditional(conditionalLexemes))
+                lexemes = lexemes.drop(conditionalLexemes.lastIndex + 1)
             }
         }
         return startNode
+    }
+
+    private fun locateConditionalBlock(lexemes: List<Lexeme>): List<Lexeme> {
+        val lastElse = lexemes.findLast { it.value == "else" }
+        if (lastElse?.position != null) {
+            return lexemes.subList(
+                fromIndex = 0,
+                toIndex = lexemes.indexOfFirst {
+                    it.type == LexemeType.DELIMITER &&
+                    it.position !== null &&
+                    it.position > lastElse.position
+                } + 1
+            )
+        } else {
+            return lexemes.subList(
+                fromIndex = 0,
+                toIndex = lexemes.indexOfFirst {
+                    it.type == LexemeType.DELIMITER
+                } + 1
+            )
+        }
     }
 
     private fun analyzeExpression(lexemes: List<Lexeme>): SyntaxTree.Node {
@@ -116,16 +137,19 @@ class SyntacticalAnalyzer {
                 toIndex = lexemes.indexOfLast { it.value == "else" }
             )
             val innerConditionalNode = SyntaxTree.Node()
-            conditionalNode.addNode(innerConditionalNode)
             conditionalNode.addNode(analyzeSyntax(conditionalBlock, innerConditionalNode))
             conditionalNode.addNode(SyntaxTree.Node(value = "else"))
             val outerElseBlock = lexemes.subList(
                 fromIndex = lexemes.indexOfLast { it.value == "else" } + 1,
                 toIndex = lexemes.lastIndex + 1
             )
-            lastConditionalLexeme = outerElseBlock.last()
-            conditionalNode.addNode(analyzeSyntax(outerElseBlock, conditionalNode))
-
+            analyzeSyntax(outerElseBlock, conditionalNode)
+        } else {
+            val conditionalBlock = lexemes.subList(
+                fromIndex = lexemes.indexOfFirst { it.value == "then" } + 1,
+                toIndex = lexemes.lastIndex + 1
+            )
+            analyzeSyntax(conditionalBlock, conditionalNode)
         }
         return conditionalNode
     }
