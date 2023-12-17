@@ -1,6 +1,8 @@
 package org.example
 
-import org.example.lexical_analyzer.Analyzer
+import org.example.lexical_analyzer.LexicalAnalyzer
+import org.example.lexical_analyzer.AnalyzerResult
+import org.example.syntax_analyzer.SyntacticalAnalyzer
 import org.example.tables.BinaryTreeTable
 import tables.SimpleRehashTable
 import kotlin.time.measureTime
@@ -8,7 +10,38 @@ import kotlin.time.measureTime
 
 fun main() {
     // testTables()
-    analyzeCode()
+    val sourceCode = """
+        c := 1.15; { присваиваем переменной c значение 1.15 }
+        a := c;
+        b := 1;
+        if a > b then
+            if a = b then
+               c := 1.32;
+            else
+               c := 1.12;
+        else
+            c := 15; { неуспешное выполнение условия }
+    """.trimIndent()
+    val lexicalResults = analyzeLexemes(sourceCode)
+    analyzeSyntax(lexicalResults).onSuccess {
+        it.value
+    }.onFailure {
+        println(it.message)
+    }
+}
+
+/**
+ * ЛР3, Партилов Д.М., Вариант 3
+ * Синтаксический анализатор
+ * Входная грамматика:
+ * S -> F;
+ * F -> if E then T else F | if E then F | a:= a
+ * T -> if E then T else T | a := a
+ * E -> a < a | a > a | a = a
+ */
+private fun analyzeSyntax(lexicalResults: List<AnalyzerResult>) = runCatching {
+    val syntaxAnalyzer = SyntacticalAnalyzer()
+    syntaxAnalyzer.analyze(lexicalResults)
 }
 
 /**
@@ -16,23 +49,11 @@ fun main() {
  * Лексический анализатор
  * Входной язык содержит операторы условия типа if ... then ... else ...  и if ... then,
  * разделённые символом ; (точка с запятой). Операторы условия содержат идентификаторы, знаки сравнения <, >, =,
- * десятичные числа с плавающей точкой, знак присваивания (:=)
+ * десятичные числа с плавающей точкой (в обычной и логарифм. форме), знак присваивания (:=)
  */
-private fun analyzeCode() {
-    val sourceCode = """
-        {
-        1c := 1.15&; { присваиваем переменной c значение 1.15 }
-        a := c;
-        b := 1;
-        if a > b then
-            c := 2.3; { действия при успешном выполнении условия }
-        else
-            c : 15b; { действия, если условие не было выполнено }
-        if b = a then
-            c := 0.3; 
-    """.trimIndent()
-    val analyzer = Analyzer()
-    analyzer.analyze(sourceCode)
+private fun analyzeLexemes(sourceCode: String): List<AnalyzerResult> {
+    val lexicalAnalyzer = LexicalAnalyzer()
+    return lexicalAnalyzer.analyze(sourceCode)
 }
 
 /**

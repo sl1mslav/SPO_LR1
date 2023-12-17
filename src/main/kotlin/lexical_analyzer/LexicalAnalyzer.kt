@@ -1,6 +1,6 @@
 package org.example.lexical_analyzer
 
-class Analyzer {
+class LexicalAnalyzer {
 
     private enum class State {
         START,
@@ -14,7 +14,7 @@ class Analyzer {
     private var lexemeBuffer: String = ""
     private val results = mutableListOf<AnalyzerResult>()
 
-    fun analyze(text: String) {
+    fun analyze(text: String): List<AnalyzerResult> {
         text.forEachIndexed { index, char ->
             when (currentState) {
                 State.START -> {
@@ -110,8 +110,9 @@ class Analyzer {
                 }
             }
         }
-        print("Исходный код: \n\n\n $text \n\n\n")
-        results.map(::checkResult).forEach(::println)
+        // print("Исходный код: \n\n\n $text \n\n\n")
+        // results.map(::checkResult).forEach(::println)
+        return results.map(::checkResult)
     }
 
     private fun checkResult(result: AnalyzerResult): AnalyzerResult {
