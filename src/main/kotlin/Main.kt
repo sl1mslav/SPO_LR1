@@ -1,15 +1,48 @@
 package org.example
 
-import org.example.lexical_analyzer.LexicalAnalyzer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import cafe.adriel.bonsai.core.Bonsai
+import cafe.adriel.bonsai.core.node.Branch
+import cafe.adriel.bonsai.core.node.Leaf
+import cafe.adriel.bonsai.core.tree.Tree
+import cafe.adriel.bonsai.core.tree.TreeScope
 import org.example.lexical_analyzer.AnalyzerResult
+import org.example.lexical_analyzer.LexicalAnalyzer
 import org.example.syntax_analyzer.SyntacticalAnalyzer
+import org.example.syntax_analyzer.SyntaxTree
 import org.example.tables.BinaryTreeTable
 import tables.SimpleRehashTable
 import kotlin.time.measureTime
 
 
-fun main() {
+fun main() = application {
     // testTables()
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Партилов Д.М., ИВТ-424, ЛР3",
+        state = rememberWindowState(width = 1000.dp, height = 1000.dp)
+    ) {
+        MaterialTheme {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                testAnalyzer()
+            }
+        }
+    }
+}
+
+@Composable
+fun testAnalyzer() {
     val sourceCode = """
         c := 1.15; { присваиваем переменной c значение 1.15 }
         a := c;
@@ -26,10 +59,31 @@ fun main() {
     """.trimIndent()
     val lexicalResults = analyzeLexemes(sourceCode)
     analyzeSyntax(lexicalResults).onSuccess {
-        it.value
+        drawNode(node = it)
     }.onFailure {
         println(it.message)
     }
+}
+
+@Composable fun TreeScope.drawBranch(node: SyntaxTree.Node) {
+    if (node.children.isEmpty()) {
+        Leaf(node.value)
+    } else {
+        Branch(node.value) {
+            node.children.forEach { drawBranch(it) }
+        }
+    }
+}
+
+@Composable
+fun drawNode(node: SyntaxTree.Node) {
+    val tree = Tree<String> {
+        drawBranch(node)
+    }
+    Bonsai(
+        tree = tree,
+        modifier = Modifier.wrapContentSize()
+    )
 }
 
 /**
@@ -75,7 +129,8 @@ private fun testTables() {
     val binaryTreeTable = BinaryTreeTable()
 
     // Измеряем время, необходимое для заполнения таблиц элементами из файла
-    val timeToFillSimpleRehashTable = measureTime { identifiers.forEach { simpleRehashTable.insertElement(it) } }.inWholeMicroseconds
+    val timeToFillSimpleRehashTable =
+        measureTime { identifiers.forEach { simpleRehashTable.insertElement(it) } }.inWholeMicroseconds
     val timeToFillBinaryTreeTable = measureTime { binaryTreeTable.fill(identifiers) }.inWholeMicroseconds
     println("Время, необходимое для заполнения таблицы \"Простое рехэширование\": $timeToFillSimpleRehashTable мкс")
     println("Время, необходимое для заполнения таблицы \"Бинарное дерево\": $timeToFillBinaryTreeTable мкс")
