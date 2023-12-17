@@ -5,19 +5,7 @@ import org.example.lexical_analyzer.Error
 import org.example.lexical_analyzer.Lexeme
 import org.example.lexical_analyzer.LexemeType
 
-/**
- * ЛР3, Партилов Д.М., Вариант 3
- * Синтаксический анализатор
- * Входная грамматика:
- * S -> F;
- * F -> if E then T else F | if E then F | a:= a
- * T -> if E then T else T | a := a
- * E -> a < a | a > a | a = a
- */
 class SyntacticalAnalyzer {
-
-    private var lastConditionalLexeme = Lexeme(null, "", type = LexemeType.DELIMITER)
-    private val tree = SyntaxTree()
 
     /**
      * @throws UnsupportedOperationException
