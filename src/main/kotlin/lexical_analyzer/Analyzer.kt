@@ -14,18 +14,6 @@ class Analyzer {
     private var lexemeBuffer: String = ""
     private val results = mutableListOf<AnalyzerResult>()
 
-    /**
-     * { &
-     *         c := 1.15; ( ... )
-     *         a := c;
-     *         b := 1;
-     *         if a > b then
-     *             c := 2.3;
-     *         else
-     *             c := 15;
-     *         if b = a then
-     *             c := 0.3;
-     */
     fun analyze(text: String) {
         text.forEachIndexed { index, char ->
             when (currentState) {
@@ -45,7 +33,7 @@ class Analyzer {
                         }
 
                         char == '{' -> {
-                            if (text.substring(startIndex = index).contains('}')) {
+                            if (text.substring(startIndex = index + 1).substringBefore('{').contains('}')) {
                                 currentState = State.COMMENT
                             } else {
                                 reportError(index, "Незакрытый комментарий!")
