@@ -18,14 +18,13 @@ import cafe.adriel.bonsai.core.tree.TreeScope
 import org.example.lexical_analyzer.AnalyzerResult
 import org.example.lexical_analyzer.LexicalAnalyzer
 import org.example.syntax_analyzer.SyntacticalAnalyzer
-import org.example.syntax_analyzer.SyntaxTree
+import org.example.syntax_analyzer.Node
 import org.example.tables.BinaryTreeTable
 import tables.SimpleRehashTable
 import kotlin.time.measureTime
 
 
 fun main() = application {
-    // testTables()
     Window(
         onCloseRequest = ::exitApplication,
         title = "Партилов Д.М., ИВТ-424, ЛР3",
@@ -65,18 +64,18 @@ fun testAnalyzer() {
     }
 }
 
-@Composable fun TreeScope.drawBranch(node: SyntaxTree.Node) {
+@Composable fun TreeScope.drawBranch(node: Node) {
     if (node.children.isEmpty()) {
-        Leaf(node.value)
+        Leaf(node.lexeme?.value ?: "E")
     } else {
-        Branch(node.value) {
+        Branch(node.lexeme ?: "E") {
             node.children.forEach { drawBranch(it) }
         }
     }
 }
 
 @Composable
-fun drawNode(node: SyntaxTree.Node) {
+fun drawNode(node: Node) {
     val tree = Tree<String> {
         drawBranch(node)
     }

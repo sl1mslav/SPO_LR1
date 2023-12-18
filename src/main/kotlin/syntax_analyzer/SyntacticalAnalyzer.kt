@@ -10,7 +10,7 @@ class SyntacticalAnalyzer {
     /**
      * @throws UnsupportedOperationException
      */
-    fun analyze(source: List<AnalyzerResult>): SyntaxTree.Node {
+    fun analyze(source: List<AnalyzerResult>): Node {
         val errors = source.filterIsInstance<Error>()
         if (errors.isNotEmpty()) {
             reportError(
@@ -18,7 +18,7 @@ class SyntacticalAnalyzer {
                 value = errors.joinToString("\n") { it.toString() }
             )
         }
-        return analyzeSyntax(source.filterIsInstance<Lexeme>(), SyntaxTree.Node())
+        return analyzeSyntax(source.filterIsInstance<Lexeme>(), Node())
     }
 
     /**
@@ -33,7 +33,7 @@ class SyntacticalAnalyzer {
      *   if b = a then
      *       c := 0.3;
      */
-    private fun analyzeSyntax(sourceLexemes: List<Lexeme>, startNode: SyntaxTree.Node): SyntaxTree.Node {
+    private fun analyzeSyntax(sourceLexemes: List<Lexeme>, startNode: Node): Node {
         var lexemes = sourceLexemes
         while (lexemes.isNotEmpty()) {
             val delimiterIndex = lexemes.indexOfFirst { it.type == LexemeType.DELIMITER }
@@ -76,7 +76,7 @@ class SyntacticalAnalyzer {
         }
     }
 
-    private fun analyzeExpression(lexemes: List<Lexeme>): SyntaxTree.Node {
+    private fun analyzeExpression(lexemes: List<Lexeme>): Node {
         if (lexemes.size < 3) {
             reportError(value ="${lexemes.first().position}: незаконченное выражение")
         }
@@ -94,39 +94,39 @@ class SyntacticalAnalyzer {
         if (lexemes.size > 3) {
             reportError(value = "${lexemes.last().position}: превышено максимальное количество лексем в выражении присваивания")
         }
-        val firstNode = SyntaxTree.Node(
-            children = mutableListOf(SyntaxTree.Node(value = lexemes.first().value))
+        val firstNode = Node(
+            children = mutableListOf(Node(lexeme = lexemes.first()))
         )
-        val secondNode = SyntaxTree.Node(
-            value = secondLexeme.value
+        val secondNode = Node(
+            lexeme = secondLexeme
         )
-        val thirdNode = SyntaxTree.Node(
-            children = mutableListOf(SyntaxTree.Node(value = thirdLexeme.value))
+        val thirdNode = Node(
+            children = mutableListOf(Node(lexeme = thirdLexeme))
         )
-        return SyntaxTree.Node(children = mutableListOf(firstNode, secondNode, thirdNode))
+        return Node(children = mutableListOf(firstNode, secondNode, thirdNode))
     }
 
-    private fun analyzeConditional(lexemes: List<Lexeme>): SyntaxTree.Node {
-        val conditionalNode = SyntaxTree.Node()
+    private fun analyzeConditional(lexemes: List<Lexeme>): Node {
+        val conditionalNode = Node()
         if (lexemes.first().value != "if") {
             reportError(value = "${lexemes.first().position}: условная конструкция должна начинаться с if")
         }
-        conditionalNode.addNode(SyntaxTree.Node(value = "if"))
+        conditionalNode.addNode(Node(lexeme = lexemes.first()))
 
         if (lexemes.none { it.value == "then" }) {
             reportError(value = "${lexemes.first().position}: за предикатом должно следовать ключевое слово then")
         }
         conditionalNode.addNode(analyzeComparison(lexemes.subList(1, lexemes.indexOfFirst { it.value == "then" })))
-        conditionalNode.addNode(SyntaxTree.Node(value = "then"))
+        conditionalNode.addNode(Node(lexeme = lexemes.find { it.value == "then" }))
 
         if (lexemes.any { it.value == "else" }) {
             val conditionalBlock = lexemes.subList(
                 fromIndex = lexemes.indexOfFirst { it.value == "then" } + 1,
                 toIndex = lexemes.indexOfLast { it.value == "else" }
             )
-            val innerConditionalNode = SyntaxTree.Node()
+            val innerConditionalNode = Node()
             conditionalNode.addNode(analyzeSyntax(conditionalBlock, innerConditionalNode))
-            conditionalNode.addNode(SyntaxTree.Node(value = "else"))
+            conditionalNode.addNode(Node(lexeme = lexemes.find { it.value == "else" }))
             val outerElseBlock = lexemes.subList(
                 fromIndex = lexemes.indexOfLast { it.value == "else" } + 1,
                 toIndex = lexemes.lastIndex + 1
@@ -142,7 +142,7 @@ class SyntacticalAnalyzer {
         return conditionalNode
     }
 
-    private fun analyzeComparison(lexemes: List<Lexeme>): SyntaxTree.Node {
+    private fun analyzeComparison(lexemes: List<Lexeme>): Node {
         if (lexemes.size != 3) {
             reportError(value ="${lexemes.first().position}: некорректная форма конструкции сравнения двух элементов")
         }
@@ -157,16 +157,16 @@ class SyntacticalAnalyzer {
         if (thirdLexeme.type != LexemeType.IDENTIFIER && thirdLexeme.type != LexemeType.CONSTANT) {
             reportError(value = "${thirdLexeme.position}: сравниваться должны идентификаторы или константы")
         }
-        val firstNode = SyntaxTree.Node(
-            children = mutableListOf(SyntaxTree.Node(value = lexemes.first().value))
+        val firstNode = Node(
+            children = mutableListOf(Node(lexeme = lexemes.first()))
         )
-        val secondNode = SyntaxTree.Node(
-            value = secondLexeme.value
+        val secondNode = Node(
+            lexeme = secondLexeme
         )
-        val thirdNode = SyntaxTree.Node(
-            children = mutableListOf(SyntaxTree.Node(value = thirdLexeme.value))
+        val thirdNode = Node(
+            children = mutableListOf(Node(lexeme = thirdLexeme))
         )
-        return SyntaxTree.Node(children = mutableListOf(firstNode, secondNode, thirdNode))
+        return Node(children = mutableListOf(firstNode, secondNode, thirdNode))
     }
 
     private fun reportError(
