@@ -1,7 +1,14 @@
 package org.example
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,8 +23,8 @@ import cafe.adriel.bonsai.core.tree.Tree
 import cafe.adriel.bonsai.core.tree.TreeScope
 import org.example.lexical_analyzer.AnalyzerResult
 import org.example.lexical_analyzer.LexicalAnalyzer
-import org.example.syntax_analyzer.SyntacticalAnalyzer
 import org.example.syntax_analyzer.Node
+import org.example.syntax_analyzer.SyntacticalAnalyzer
 import org.example.tables.BinaryTreeTable
 import tables.SimpleRehashTable
 import kotlin.time.measureTime
@@ -103,10 +110,7 @@ fun drawNode(node: Node) {
     val tree = Tree<String> {
         drawBranch(node)
     }
-    Bonsai(
-        tree = tree,
-        modifier = Modifier.wrapContentSize()
-    )
+    Bonsai(tree = tree)
 }
 
 /**
