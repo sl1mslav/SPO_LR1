@@ -1,10 +1,9 @@
 package org.example
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -25,37 +24,61 @@ import kotlin.time.measureTime
 
 
 fun main() = application {
+    var sourceCode by remember {
+        mutableStateOf("""
+            c := 1.15; { присваиваем переменной c значение 1.15 }
+            a := c;
+            b := 1;
+            if a > b then
+                if a = b then
+                   c := 1.32;
+                else
+                   c := 1.12;
+            else
+                c := 15; { неуспешное выполнение условия }
+            if 15 > 1.12 then
+                c := 13;
+        """.trimIndent())
+    }
+    var graphResult: Result<Node>? by remember { mutableStateOf(null) }
     Window(
         onCloseRequest = ::exitApplication,
         title = "Партилов Д.М., ИВТ-424, ЛР3",
         state = rememberWindowState(width = 1000.dp, height = 1000.dp)
     ) {
         MaterialTheme {
-            Box(
+            Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                testAnalyzer()
+                TextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = sourceCode,
+                    onValueChange = {
+                        sourceCode = it
+                    }
+                )
+                Button(
+                    modifier = Modifier.align(Alignment.End).padding(10.dp),
+                    onClick = {
+                        val lexicalResults = analyzeLexemes(sourceCode)
+                        graphResult = analyzeSyntax(lexicalResults)
+                    },
+                    content = {
+                        Text("Проанализировать")
+                    }
+                )
+                graphResult?.onSuccess {
+                    drawNode(it)
+                }?.onFailure {
+                    Text(text = it.message ?: "Произошла неизвестная ошибка")
+                }
             }
         }
     }
 }
 
 @Composable
-fun testAnalyzer() {
-    val sourceCode = """
-        c := 1.15; { присваиваем переменной c значение 1.15 }
-        a := c;
-        b := 1;
-        if a > b then
-            if a = b then
-               c := 1.32;
-            else
-               c := 1.12;
-        else
-            c := 15; { неуспешное выполнение условия }
-        if 15 > 1.12 then
-            c := 13; 
-    """.trimIndent()
+fun lr3(sourceCode: String) {
     val lexicalResults = analyzeLexemes(sourceCode)
     analyzeSyntax(lexicalResults).onSuccess {
         drawNode(node = it)
@@ -64,7 +87,8 @@ fun testAnalyzer() {
     }
 }
 
-@Composable fun TreeScope.drawBranch(node: Node) {
+@Composable
+fun TreeScope.drawBranch(node: Node) {
     if (node.children.isEmpty()) {
         Leaf(node.lexeme?.value ?: "E")
     } else {
