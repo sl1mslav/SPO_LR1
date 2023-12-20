@@ -124,8 +124,7 @@ class SyntacticalAnalyzer {
                 fromIndex = lexemes.indexOfFirst { it.value == "then" } + 1,
                 toIndex = lexemes.indexOfLast { it.value == "else" }
             )
-            val innerConditionalNode = Node()
-            conditionalNode.addNode(analyzeSyntax(conditionalBlock, innerConditionalNode))
+            analyzeSyntax(conditionalBlock, conditionalNode)
             conditionalNode.addNode(Node(lexeme = lexemes.find { it.value == "else" }))
             val outerElseBlock = lexemes.subList(
                 fromIndex = lexemes.indexOfLast { it.value == "else" } + 1,
