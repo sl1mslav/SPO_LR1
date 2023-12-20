@@ -22,6 +22,7 @@ import cafe.adriel.bonsai.core.tree.Tree
 import cafe.adriel.bonsai.core.tree.TreeScope
 import org.example.lexical_analyzer.AnalyzerResult
 import org.example.lexical_analyzer.LexicalAnalyzer
+import org.example.semantic_analyzer.SemanticAnalyzer
 import org.example.syntax_analyzer.Node
 import org.example.syntax_analyzer.SyntacticalAnalyzer
 import org.example.tables.BinaryTreeTable
@@ -29,7 +30,7 @@ import tables.SimpleRehashTable
 import kotlin.time.measureTime
 
 
-fun main() = application {
+/*fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "Партилов Д.М., ИВТ-424, ЛР3",
@@ -38,6 +39,37 @@ fun main() = application {
         MaterialTheme {
             lr3()
         }
+    }
+}*/
+
+fun main() {
+    lr4()
+}
+
+fun lr4() {
+    val sourceCode = """
+        a := 1.2;
+        c := a;
+        c := 1.15;
+        y := c;
+        if a < 3 then
+            if 4 > 2 then
+                c := 35;
+        else
+            c := 32;
+        if 9 > y then
+            y := 3; 
+    """.trimIndent()
+    val semanticAnalyzer = SemanticAnalyzer()
+    val lexicalResults = analyzeLexemes(sourceCode)
+    val syntaxGraph = analyzeSyntax(lexicalResults).getOrThrow()
+    val initialResults = semanticAnalyzer.analyzeNode(syntaxGraph)
+    initialResults.forEachIndexed { index, triad ->
+        println("${index + 1}) $triad")
+    }
+    println("\n ------------------------------------- \n")
+    semanticAnalyzer.reduce(initialResults).forEachIndexed { index, triad ->
+        println("${index + 1}) $triad")
     }
 }
 
