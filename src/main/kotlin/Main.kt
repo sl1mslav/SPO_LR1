@@ -50,7 +50,7 @@ fun lr4() {
     val sourceCode = """
         a := 1.2;
         c := a;
-        c := 1.15;
+        c := 1.2;
         y := c;
         if a < 3 then
             if 4 > 2 then
@@ -58,17 +58,37 @@ fun lr4() {
         else
             c := 32;
         if 9 > y then
+            y := 3;
+        if 9 > y then
             y := 3; 
     """.trimIndent()
     val semanticAnalyzer = SemanticAnalyzer()
     val lexicalResults = analyzeLexemes(sourceCode)
     val syntaxGraph = analyzeSyntax(lexicalResults).getOrThrow()
+
     val initialResults = semanticAnalyzer.analyzeNode(syntaxGraph)
+    println("Исходные триады:")
     initialResults.forEachIndexed { index, triad ->
         println("${index + 1}) $triad")
     }
     println("\n ------------------------------------- \n")
-    semanticAnalyzer.reduce(initialResults).forEachIndexed { index, triad ->
+
+    val reducedTriads = semanticAnalyzer.reduce(initialResults)
+    println("Триады после свёртки:")
+    reducedTriads.forEachIndexed { index, triad ->
+        println("${index + 1}) $triad")
+    }
+    println("\n ------------------------------------- \n")
+
+    println("Триады после анализа лишних операций: ")
+    val optimizedTriads = semanticAnalyzer.optimize(reducedTriads)
+    optimizedTriads.forEachIndexed { index, triad ->
+        println("${index + 1}) $triad")
+    }
+    println("\n ------------------------------------- \n")
+
+    println("Триады после исключения лишних операций: ")
+    optimizedTriads.filter { it.operator.value != "SAME" }.forEachIndexed { index, triad ->
         println("${index + 1}) $triad")
     }
 }

@@ -33,10 +33,53 @@ class SemanticAnalyzer {
         val conditionalTriadLinks = triads.filter { it.operator.value == "if" || it.operator.value == "jmp" }
             .map { it.rOperand.removePrefix("^").toInt() }
         val assignmentsToIgnore = conditionalTriadLinks.filter { triads[it - 1].operator.type == LexemeType.ASSIGN_SIGN }
-        when {
-
+        triads.forEachIndexed { index, triad ->
+            if (triad.operator.type == LexemeType.ASSIGN_SIGN) {
+                if (triad.rOperand in idsWithConstants.keys && (index + 1) !in assignmentsToIgnore) {
+                    idsWithConstants[triad.lOperand] = idsWithConstants[triad.rOperand]!!
+                    newTriads.add(triad.copy(rOperand = idsWithConstants[triad.rOperand]!!))
+                }
+                else {
+                    idsWithConstants[triad.lOperand] = triad.rOperand
+                    newTriads.add(triad)
+                }
+            } else if (triad.operator.type == LexemeType.COMPARISON_SIGN) {
+                newTriads.add(triad)
+            }
+            else {
+                newTriads.add(triad.copy(
+                    lOperand = idsWithConstants[triad.lOperand] ?: triad.lOperand,
+                    rOperand = idsWithConstants[triad.rOperand] ?: triad.rOperand
+                ))
+            }
         }
         return newTriads
+    }
+
+    fun optimize(triads: List<Triad>): List<Triad> {
+        val analyzedDuplicates = triads.mapIndexed { index, triad ->
+            val subList = triads.subList(0, index)
+            val prevSameTriadIndex =
+                subList.indexOfFirst { it.operator.value == triad.operator.value && it.lOperand == triad.lOperand && it.rOperand == triad.rOperand }
+            if (prevSameTriadIndex != -1) {
+                triad.copy(
+                    operator = Lexeme(value = "SAME", type = LexemeType.COMPARISON_SIGN),
+                    lOperand = (prevSameTriadIndex + 1).toString(),
+                    rOperand = "0"
+                )
+            } else
+                triad
+        }
+        return analyzedDuplicates.map {
+            var triadBuilder = it.copy()
+            if (it.lOperand.contains('^') && analyzedDuplicates[it.lOperand.removePrefix("^").toInt() - 1].operator.value == "SAME") {
+                triadBuilder = triadBuilder.copy(lOperand = "^" + analyzedDuplicates[it.lOperand.removePrefix("^").toInt() - 1].lOperand)
+            }
+            if (it.rOperand.contains('^') && analyzedDuplicates[it.rOperand.removePrefix("^").toInt() - 1].operator.value == "SAME") {
+                triadBuilder = triadBuilder.copy(rOperand = "^" + analyzedDuplicates[it.rOperand.removePrefix("^").toInt() - 1].lOperand)
+            }
+            triadBuilder
+        }
     }
 
     private fun addAssignment(node: Node): Int {
